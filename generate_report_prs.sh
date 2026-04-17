@@ -190,39 +190,39 @@ for REPO in "${REPOS[@]}"; do
         echo "  No PRs found for ${REPO} on ${DATE}"
         continue
     fi
-    
+
     # Group PRs by author
     AUTHORS=$(echo "$PRS_JSON" | jq -r '.[].author.login' | sort -u)
-    
+
     REPO_HAS_CONTENT=false
-    
+
     for AUTHOR in $AUTHORS; do
         # Skip ignored authors
         if is_ignored "$AUTHOR"; then
             echo "  Skipping ignored author: ${AUTHOR}"
             continue
         fi
-        
+
         # Get this author's PRs
         AUTHOR_PRS=$(echo "$PRS_JSON" | jq -c --arg author "$AUTHOR" '[.[] | select(.author.login == $author)]')
         PR_COUNT=$(echo "$AUTHOR_PRS" | jq 'length')
-        
+
         if [[ "$PR_COUNT" -eq 0 ]]; then
             continue
         fi
-        
+
         REPO_HAS_CONTENT=true
         HAS_CONTENT=true
         TOTAL_PRS=$((TOTAL_PRS + PR_COUNT))
-        
+
         echo "  Author: ${AUTHOR} (${PR_COUNT} PRs)"
-        
+
         # ---------- Build context for Gemini summary ----------
-        SUMMARY_INPUT="Summarize what this developer has been working on based on these Pull Requests. Be concise (3-7 sentences max). Output ONLY the summary in English, no extra formatting.\n\n"
-        
+        SUMMARY_INPUT="Summarize what this developer has been working on based on these Pull Requests. Be concise (3-7 sentences max). Output ONLY the summary in English, no extra formatting. You don't need to find through a web search about a PR.\n\n"
+
         # Build PR table rows and collect summary material
         TABLE_ROWS=""
-        
+
         while IFS= read -r pr_item; do
             PR_NUMBER=$(echo "$pr_item" | jq -r '.number')
             PR_TITLE=$(echo "$pr_item" | jq -r '.title')
